@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
 
 import argparse
-from minori.minori import Minori
+import sys
+import logging
+from minori.minori import MinoriShows
+from minori.minorirss import MinoriRss
+
+logging.basicConfig(filename='minori.log',
+                    filemode='a',
+                    format='%(asctime)s [%(levelname)s] %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
+logger = logging.getLogger('Minori')
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+ch = logging.StreamHandler(sys.stdout)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def main():
@@ -35,7 +49,8 @@ def main():
 
     args = parser.parse_args()
 
-    minori = Minori()
+    minori = MinoriShows()
+    minorirss = MinoriRss()
     if args.initdb:
         minori.initialize()
 
@@ -43,7 +58,7 @@ def main():
         minori.get_all_shows()
 
     if args.rss:
-        minori.get_all_rss()
+        minorirss.get_all_rss()
 
     if args.which == 'addshow':
         name = args.name
@@ -58,10 +73,10 @@ def main():
     if args.which == 'addrss':
         name = args.name
         url = args.url
-        minori.add_rss(name, url)
+        minorirss.add_rss(name, url)
     elif args.which == 'rmrss':
         name = args.name.split(',')
-        minori.rm_rss(name)
+        minorirss.rm_rss(name)
 
 
 if __name__ == '__main__':
