@@ -3,6 +3,7 @@
 import argparse
 import sys
 import logging
+from pprint import pprint
 from minori.minorishows import MinoriShows
 from minori.minorirss import MinoriRss
 
@@ -55,10 +56,10 @@ def main():
         minorishows.initialize()
 
     if args.shows:
-        minorishows.get_all_shows()
+        pprint(minorishows.get_all_shows())
 
     if args.rss:
-        minorirss.get_all_rss()
+        pprint(minorirss.get_all_rss())
 
     if args.which == 'addshow':
         name = args.name

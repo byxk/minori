@@ -6,6 +6,7 @@ from pprint import pprint
 
 import feedparser
 
+
 class MinoriRss:
     def __init__(self, db='database.db'):
         self.db = db
@@ -39,8 +40,8 @@ class MinoriRss:
     def get_all_rss(self):
         try:
             sql_statement = 'SELECT * FROM rss'
-            rss = [r for r in self.connection.execute(sql_statement)]
-            print("RSS Name | RSS URL")
-            pprint(rss)
+            rss = [{'name': n,
+                    'url': url} for (n, url) in self.connection.execute(sql_statement)]
+            return rss
         except sqlite3.OperationalError:
             self.logger.error("Database not initialized")

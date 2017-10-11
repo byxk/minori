@@ -47,8 +47,11 @@ class MinoriShows:
     def get_all_shows(self):
         try:
             sql_statement = 'SELECT * FROM shows'
-            shows = [r for r in self.connection.execute(sql_statement)]
-            print("SHOWNAME | MAX_EPS | CURRENT_EP | DATE_ADDED")
-            pprint(shows)
+            shows = [{'name': n,
+                      'max_ep': m,
+                      'current': r,
+                      'keywords': k,
+                      'date_added': d} for (n, m, r, k, d) in self.connection.execute(sql_statement)]
+            return shows
         except sqlite3.OperationalError:
             self.logger.error("Database not initialized")
