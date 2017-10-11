@@ -2,8 +2,9 @@
 import logging
 import datetime
 import sqlite3
-import sys
+from pprint import pprint
 
+import feedparser
 
 class MinoriRss:
     def __init__(self, db='database.db'):
@@ -43,4 +44,3 @@ class MinoriRss:
             pprint(rss)
         except sqlite3.OperationalError:
             self.logger.error("Database not initialized")
-

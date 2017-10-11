@@ -2,9 +2,10 @@
 
 import sqlite3
 import datetime
-import sys
 import logging
 from pprint import pprint
+
+
 class MinoriShows:
     def __init__(self, db='database.db'):
         self.db = db

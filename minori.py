@@ -3,7 +3,7 @@
 import argparse
 import sys
 import logging
-from minori.minori import MinoriShows
+from minori.minorishows import MinoriShows
 from minori.minorirss import MinoriRss
 
 logging.basicConfig(filename='minori.log',
@@ -28,7 +28,7 @@ def main():
     add_subparser = subparser.add_parser('addshow', help='Add a show')
     add_subparser.add_argument('name', help='Show name')
     add_subparser.add_argument('max', help='Max total episodes for the show')
-    add_subparser.add_argument('keyword', help='Keywords to search for, csv (eg "Commie,720p).\
+    add_subparser.add_argument('keyword', help='Keywords to search for, csv (eg "Commie,720p, %e").\
                                                 No need to provide show name')
     add_subparser.add_argument('--current', help='Current episode (defaults to 0, no ep\'\
                                                   watched)', action='store_true')
@@ -49,13 +49,13 @@ def main():
 
     args = parser.parse_args()
 
-    minori = MinoriShows()
+    minorishows = MinoriShows()
     minorirss = MinoriRss()
     if args.initdb:
-        minori.initialize()
+        minorishows.initialize()
 
     if args.shows:
-        minori.get_all_shows()
+        minorishows.get_all_shows()
 
     if args.rss:
         minorirss.get_all_rss()
@@ -65,10 +65,10 @@ def main():
         max_ep = args.max
         current = args.current
         keyword = args.keyword
-        minori.add_show(name, max_ep, keyword, current)
+        minorishows.add_show(name, max_ep, keyword, current)
     elif args.which == 'rmshow':
         name = args.name.split(',')
-        minori.rm_show(name)
+        minorishows.rm_show(name)
 
     if args.which == 'addrss':
         name = args.name
