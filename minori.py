@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--shows', help='Get all shows in the database', action='store_true')
     parser.add_argument('--rss', help='Get all rss feed in the database', action='store_true')
     parser.add_argument('--scan', help='Scan and check feeds for shows', action='store_true')
+    parser.add_argument('--download', help='Scan and download shows', action='store_true')
 
     subparser = parser.add_subparsers(dest='which')
     add_subparser = subparser.add_parser('addshow', help='Add a show')
@@ -57,7 +58,7 @@ def main():
     minorirss = MinoriRss()
     minorimain = MinoriMain()
     if args.initdb:
-        minorishows.initialize()
+        minorimain.initialize()
 
     if args.shows:
         pprint(minorishows.get_all_shows())
@@ -84,7 +85,11 @@ def main():
         minorirss.rm_rss(name)
 
     if args.scan:
-        minorimain.scan_rss()
+        l = minorimain.scan_rss()
+        pprint(l)
+
+    if args.download:
+        minorimain.download()
 
 
 if __name__ == '__main__':

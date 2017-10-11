@@ -15,14 +15,6 @@ class MinoriShows:
         self.connection.commit()
         self.connection.close()
 
-    def initialize(self):
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS shows
-             (name text primary key, max_episodes integer, most_recent_episode integer,\
-                     keywords text, date_added timestamp)''')
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS rss
-             (name text primary key, url text, date_added timestamp)''')
-        self.logger.info("Initialized database")
-
     def add_show(self, name, max_ep, keywords, current=0):
         date = datetime.datetime.now()
         sql_statement = 'INSERT INTO shows VALUES (?, ?, ?, ?, ?)'
