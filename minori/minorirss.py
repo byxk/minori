@@ -2,8 +2,6 @@
 import logging
 import datetime
 import sqlite3
-from pprint import pprint
-
 import feedparser
 
 
@@ -41,7 +39,24 @@ class MinoriRss:
         try:
             sql_statement = 'SELECT * FROM rss'
             rss = [{'name': n,
-                    'url': url} for (n, url) in self.connection.execute(sql_statement)]
+                    'url': url,
+                    'timestamp': t} for (n, url, t) in self.connection.execute(sql_statement)]
             return rss
         except sqlite3.OperationalError:
             self.logger.error("Database not initialized")
+
+    # attempt to gather all rss feeds into a list of dicts {title, link, rss_title}
+    def parse_rss(self):
+        rss = self.get_all_rss()
+        compiled = []
+        for feed in rss:
+            parsed = feedparser.parse(feed['url'])
+            self.logger.debug("Parsed feed {} with {} entries".format(parsed.feed.title,
+                                                                      len(parsed.entries)))
+            for entry in parsed.entries:
+                compiled.append({"rss": parsed.feed.title,
+                                 "name": entry.title,
+                                 "link": entry.link})
+        self.logger.debug("Parsed all entries, ended up with compiled length {}"
+                          .format(len(compiled)))
+        return compiled

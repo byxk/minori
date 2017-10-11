@@ -6,6 +6,8 @@ import logging
 from pprint import pprint
 from minori.minorishows import MinoriShows
 from minori.minorirss import MinoriRss
+from minori.minorimain import MinoriMain
+
 
 logging.basicConfig(filename='minori.log',
                     filemode='a',
@@ -24,6 +26,7 @@ def main():
     parser.add_argument('--initdb', help='Initialize database <name>')
     parser.add_argument('--shows', help='Get all shows in the database', action='store_true')
     parser.add_argument('--rss', help='Get all rss feed in the database', action='store_true')
+    parser.add_argument('--scan', help='Scan and check feeds for shows', action='store_true')
 
     subparser = parser.add_subparsers(dest='which')
     add_subparser = subparser.add_parser('addshow', help='Add a show')
@@ -52,6 +55,7 @@ def main():
 
     minorishows = MinoriShows()
     minorirss = MinoriRss()
+    minorimain = MinoriMain()
     if args.initdb:
         minorishows.initialize()
 
@@ -78,6 +82,9 @@ def main():
     elif args.which == 'rmrss':
         name = args.name.split(',')
         minorirss.rm_rss(name)
+
+    if args.scan:
+        minorimain.scan_rss()
 
 
 if __name__ == '__main__':

@@ -3,7 +3,6 @@
 import sqlite3
 import datetime
 import logging
-from pprint import pprint
 
 
 class MinoriShows:
