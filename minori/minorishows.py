@@ -27,10 +27,12 @@ class MinoriShows:
 
     def rm_show(self, name):
         # TODO: do remove properly, check all databases. (use sql relations here?)
-        sql_statement = 'DELETE FROM shows WHERE name=?'
+        shows_sql_statement = 'DELETE FROM shows WHERE name=?'
+        download_sql_statement = 'DELETE FROM downloads WHERE name=?'
         try:
             for i in name:
-                self.connection.execute(sql_statement, (i,))
+                self.connection.execute(shows_sql_statement, (i,))
+                self.connection.execute(download_sql_statement, (i,))
         except sqlite3.IntegrityError:
             self.logger.warning("Show doesn't exist in database")
             return

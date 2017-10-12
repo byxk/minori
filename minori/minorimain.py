@@ -5,6 +5,7 @@ import datetime
 import time
 import sqlite3
 import subprocess
+import configparser
 from .minorirss import MinoriRss
 from .minorishows import MinoriShows
 
@@ -14,9 +15,12 @@ class MinoriMain:
         self.db = db
         self.connection = sqlite3.connect(self.db)
         self.logger = logging.getLogger('Minori')
-
-        # move to config
-        self.scan_interval = 60 * 60
+        config = configparser.ConfigParser()
+        config.read('minori.conf')
+        self.scan_interval = int(config['MINORI']['ScanInterval'])
+        self.download_exec = str(config['MINORI']['DownloadExec'])
+        self.download_pre = str(config['MINORI']['DownloadPre'])
+        self.download_post = str(config['MINORI']['DownloadPost'])
 
     def __del__(self):
         self.connection.commit()
@@ -33,13 +37,22 @@ class MinoriMain:
              (name text primary key, torrent text, date_added timestamp)''')
         self.logger.info("Initialized database")
 
+    def _exec(self, command):
+        subprocess.check_output(
+                command,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                shell=True)
+        return
+
     def _download_shows(self, info):
         # deluge only
-        subprocess.check_output(
-                'deluge-console "add {}"'.format(info['link']),
-                stderr=subprocess.STDOUT,
-                shell=True)
-        self.logger.info("Sent download to deluge: {}".format(info['show_title']))
+        self.logger.info("Kicking off DownloadPre...")
+        self._exec(self.download_pre.replace("%%LINK%%", info['link']))
+        self.logger.info("Kicking off DownloadExec...")
+        self._exec(self.download_exec.replace("%%LINK%%", info['link']))
+        self.logger.info("Kicking off DownloadPost...")
+        self._exec(self.download_post.replace("%%LINK%%", info['link']))
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
