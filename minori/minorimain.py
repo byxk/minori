@@ -89,7 +89,7 @@ class MinoriMain:
                 self.logger.debug("{} already in downloads database, skipping."
                                   .format(i['show_title']))
 
-    def watch(self):
+    def minorin(self):
         self.logger.debug("Starting watch...")
         while True:
             self.download()
