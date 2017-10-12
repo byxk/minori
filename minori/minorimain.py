@@ -2,7 +2,9 @@
 
 import logging
 import datetime
+import time
 import sqlite3
+import subprocess
 from .minorirss import MinoriRss
 from .minorishows import MinoriShows
 
@@ -12,6 +14,9 @@ class MinoriMain:
         self.db = db
         self.connection = sqlite3.connect(self.db)
         self.logger = logging.getLogger('Minori')
+
+        # move to config
+        self.scan_interval = 60 * 60
 
     def __del__(self):
         self.connection.commit()
@@ -27,6 +32,14 @@ class MinoriMain:
         self.connection.execute('''CREATE TABLE IF NOT EXISTS downloads
              (name text primary key, torrent text, date_added timestamp)''')
         self.logger.info("Initialized database")
+
+    def _download_shows(self, info):
+        # deluge only
+        subprocess.check_output(
+                'deluge-console "add {}"'.format(info['link']),
+                stderr=subprocess.STDOUT,
+                shell=True)
+        self.logger.info("Sent download to deluge: {}".format(info['show_title']))
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
@@ -53,6 +66,7 @@ class MinoriMain:
 
             find = self._feed_rss(rss, keywords, show['current'] + 1)
             if find is not None:
+                find['user_title'] = show['name']
                 compiled.append(find)
 
         self.logger.debug("Compiled a filtered list of length {}".format(len(compiled)))
@@ -62,11 +76,22 @@ class MinoriMain:
         to_download = self.scan_rss()
         for i in to_download:
             date = datetime.datetime.now()
-            sql_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
+            insert_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
+            update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name =?'
             try:
-                self.connection.execute(sql_statement, (i['show_title'], i['link'], date))
+                self.connection.execute(update_statement, (i['current'], i['user_title']))
+                self.connection.execute(insert_statement, (i['show_title'], i['link'], date))
+                # if the show hasn't been added to the dl queue, then stuff below will execute
+                # TODO: move download stuff into its own module? support other stuff?
+                self._download_shows(i)
                 self.logger.info("Added {} to downloads".format(i['show_title']))
-                # TODO: kick off link to torrent client
-                # TODO: update list in shows to reflect current ep
-            except sqlite3.IntegrityError:
-                self.logger.debug("Show already exists in downloads")
+            except sqlite3.IntegrityError as e:
+                self.logger.debug("{} already in downloads database, skipping."
+                                  .format(i['show_title']))
+
+    def watch(self):
+        self.logger.debug("Starting watch...")
+        while True:
+            self.download()
+            self.logger.debug("Done download, sleeping...")
+            time.sleep(self.scan_interval)

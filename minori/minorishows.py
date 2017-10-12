@@ -26,6 +26,7 @@ class MinoriShows:
         self.logger.info("Added show!")
 
     def rm_show(self, name):
+        # TODO: do remove properly, check all databases. (use sql relations here?)
         sql_statement = 'DELETE FROM shows WHERE name=?'
         try:
             for i in name:
