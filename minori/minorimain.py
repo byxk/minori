@@ -48,11 +48,11 @@ class MinoriMain:
     def _download_shows(self, info):
         # deluge only
         self.logger.info("Kicking off DownloadPre...")
-        self._exec(self.download_pre.replace("%%LINK%%", info['link']))
+        self._exec(self.download_pre.replace("$LINK", info['link']))
         self.logger.info("Kicking off DownloadExec...")
-        self._exec(self.download_exec.replace("%%LINK%%", info['link']))
+        self._exec(self.download_exec.replace("$LINK", info['link']))
         self.logger.info("Kicking off DownloadPost...")
-        self._exec(self.download_post.replace("%%LINK%%", info['link']))
+        self._exec(self.download_post.replace("$LINK", info['link']))
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
@@ -93,7 +93,7 @@ class MinoriMain:
             update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name =?'
             try:
                 self.connection.execute(update_statement, (i['current'], i['user_title']))
-                self.connection.execute(insert_statement, (i['show_title'], i['link'], date))
+                self.connection.execute(insert_statement, (i['user_title'], i['link'], date))
                 # if the show hasn't been added to the dl queue, then stuff below will execute
                 # TODO: move download stuff into its own module? support other stuff?
                 self._download_shows(i)
