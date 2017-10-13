@@ -1,7 +1,32 @@
 # minori
 
 ### features
+* execute actions when scraping from RSS feeds
 * no mal support
+
+### requirements
+* [feedparser](https://pypi.python.org/pypi/feedparser)
+
+### examples
+Add a show:
+
+`./minori.py addshow "Onyankopon" 12 "[HorribleSubs],1080p,mkv"`
+
+Add a rss feed:
+
+`./minori.py addrss "HorribleSubs" "urlhere"`
+
+Scan rss feeds for shows
+
+`./minori.py --scan`
+
+Scan rss feeds for shows, and execute actions
+
+`./minori.py --download`
+
+A continuous version of --download
+
+`./minori.py --minorin`
 
 ### todo
 * add pre/post scan hooks

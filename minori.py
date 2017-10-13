@@ -37,7 +37,7 @@ def main():
     add_subparser.add_argument('keyword', help='Keywords to search for, csv (eg "Commie,720p, %e").\
                                                 No need to provide show name')
     add_subparser.add_argument('--current', help='Current episode (defaults to 0, no ep\'\
-                                                  watched)', action='store_true')
+                                                  watched)', default=0)
     add_subparser.set_defaults(which='addshow')
 
     rmshow_subparser = subparser.add_parser('rmshow', help='Remove a show')
