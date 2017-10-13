@@ -6,8 +6,12 @@
 * no configuration options
 
 ### todo
-* add pre/post download hooks
 * add pre/post scan hooks
+* sort out the mess that is the database handling...
+* sort out the tangle and mess of classes at the same time
+* do something with a downloads folder?
+* add mal support?
+* frontend?
 
 ### sample
 ``` ./minori.py --download
