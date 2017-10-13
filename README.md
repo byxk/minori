@@ -1,9 +1,7 @@
 # minori
 
 ### features
-* only supports deluge
 * no mal support
-* no configuration options
 
 ### todo
 * add pre/post scan hooks
