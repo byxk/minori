@@ -39,20 +39,28 @@ class MinoriMain:
 
     def _exec(self, command):
         subprocess.check_output(
-                command,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                shell=True)
+            command,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            shell=True)
         return
 
+    def _replace_text(self, text, dic):
+        for i, j in dic.items():
+            text = text.replace(i, j)
+        return text
+
     def _download_shows(self, info):
+        replace_text = {"$LINK": info['link'],
+                        "$TITLE": info['show_title']
+                        }
         # deluge only
         self.logger.info("Kicking off DownloadPre...")
-        self._exec(self.download_pre.replace("$LINK", info['link']))
+        self._exec(self._replace_text(self.download_pre, replace_text))
         self.logger.info("Kicking off DownloadExec...")
-        self._exec(self.download_exec.replace("$LINK", info['link']))
+        self._exec(self._replace_text(self.download_exec, replace_text))
         self.logger.info("Kicking off DownloadPost...")
-        self._exec(self.download_post.replace("$LINK", info['link']))
+        self._exec(self._replace_text(self.download_post, replace_text))
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
@@ -90,10 +98,11 @@ class MinoriMain:
         for i in to_download:
             date = datetime.datetime.now()
             insert_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
-            update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name =?'
+            update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name=?'
             try:
-                self.connection.execute(update_statement, (i['current'], i['user_title']))
                 self.connection.execute(insert_statement, (i['user_title'], i['link'], date))
+                self.connection.execute(update_statement, (i['current'], i['user_title']))
+                self.connection.commit()
                 # if the show hasn't been added to the dl queue, then stuff below will execute
                 # TODO: move download stuff into its own module? support other stuff?
                 self._download_shows(i)
