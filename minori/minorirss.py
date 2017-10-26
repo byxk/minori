@@ -14,8 +14,8 @@ class MinoriRss:
         date = datetime.datetime.now()
         sql_statement = 'INSERT INTO rss VALUES (?, ?, ?)'
         try:
-            with MinoriDatabase()
-            self.connection.execute(sql_statement, (name, url, date))
+            with MinoriDatabase() as md:
+                md.execute(sql_statement, (name, url, date))
         except sqlite3.IntegrityError:
             self.logger.warning("RSS already exists in database")
             return
@@ -25,7 +25,8 @@ class MinoriRss:
         sql_statement = 'DELETE FROM rss WHERE name=?'
         try:
             for i in name:
-                self.connection.execute(sql_statement, (i,))
+                with MinoriDatabase() as md:
+                    md.execute(sql_statement, (i,))
         except sqlite3.IntegrityError:
             self.logger.warning("RSS doesn't exist in database")
             return
@@ -36,7 +37,7 @@ class MinoriRss:
             sql_statement = 'SELECT * FROM rss'
             rss = [{'name': n,
                     'url': url,
-                    'timestamp': t} for (n, url, t) in self.connection.execute(sql_statement)]
+                    'timestamp': t} for (n, url, t) in MinoriDatabase().execute(sql_statement)]
             return rss
         except sqlite3.OperationalError:
             self.logger.error("Database not initialized")
