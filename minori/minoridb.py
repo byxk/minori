@@ -30,8 +30,8 @@ class MinoriDatabase:
         args  = tuple of substitutes for the query
         """
         if args:
-            self.connection.execute(query, args)
+            self.cur = self.connection.execute(query, args)
         else:
-            self.connection.execute(query)
+            self.cur = self.connection.execute(query)
         self.connection.commit()
         return self.cur

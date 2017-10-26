@@ -30,7 +30,7 @@ class MinoriMain:
                 (name text primary key, url text, date_added timestamp)''')
             md.execute('''CREATE TABLE IF NOT EXISTS downloads
                 (name text primary key, torrent text, date_added timestamp)''')
-        self.logger.info("Initialized database {}".format(self.db_file))
+            self.logger.info("Initialized database {}".format(md.db_file))
 
     def _exec(self, command):
         subprocess.check_output(
