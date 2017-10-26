@@ -17,10 +17,10 @@ class MinoriMain:
         self.logger = logging.getLogger('Minori')
         config = configparser.ConfigParser()
         config.read('minori.conf')
-        self.scan_interval = int(config['MINORI']['ScanInterval'])
-        self.download_exec = str(config['MINORI']['DownloadExec'])
-        self.download_pre = str(config['MINORI']['DownloadPre'])
-        self.download_post = str(config['MINORI']['DownloadPost'])
+        self.scan_interval = int(config['MINORI'].get('ScanInterval', 3600))
+        self.download_exec = str(config['MINORI'].get('DownloadExec', None))
+        self.download_pre = str(config['MINORI'].get('DownloadPre', None))
+        self.download_post = str(config['MINORI'].get('DownloadPost', None))
 
     def __del__(self):
         self.connection.commit()
@@ -54,13 +54,15 @@ class MinoriMain:
         replace_text = {"$LINK": info['link'],
                         "$TITLE": info['show_title']
                         }
-        # deluge only
-        self.logger.info("Kicking off DownloadPre...")
-        self._exec(self._replace_text(self.download_pre, replace_text))
-        self.logger.info("Kicking off DownloadExec...")
-        self._exec(self._replace_text(self.download_exec, replace_text))
-        self.logger.info("Kicking off DownloadPost...")
-        self._exec(self._replace_text(self.download_post, replace_text))
+        if self.download_pre:
+            self.logger.info("Kicking off DownloadPre...")
+            self._exec(self._replace_text(self.download_pre, replace_text))
+        if self.download_exec:
+            self.logger.info("Kicking off DownloadExec...")
+            self._exec(self._replace_text(self.download_exec, replace_text))
+        if self.download_post:
+            self._exec(self._replace_text(self.download_post, replace_text))
+            self.logger.info("Kicking off DownloadPost...")
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
