@@ -21,17 +21,6 @@ class MinoriMain:
         self.download_pre = str(config['MINORI']['DownloadPre'])
         self.download_post = str(config['MINORI']['DownloadPost'])
 
-    def initialize(self):
-        with MinoriDatabase() as md:
-            md.execute('''CREATE TABLE IF NOT EXISTS shows
-                (name text primary key, max_episodes integer, most_recent_episode integer,\
-                keywords text, date_added timestamp)''')
-            md.execute('''CREATE TABLE IF NOT EXISTS rss
-                (name text primary key, url text, date_added timestamp)''')
-            md.execute('''CREATE TABLE IF NOT EXISTS downloads
-                (name text primary key, torrent text, date_added timestamp)''')
-            self.logger.info("Initialized database {}".format(md.db_file))
-
     def _exec(self, command):
         subprocess.check_output(
             command,
