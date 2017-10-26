@@ -17,10 +17,12 @@ class MinoriMain:
         self.logger = logging.getLogger('Minori')
         config = configparser.ConfigParser()
         config.read('minori.conf')
-        self.scan_interval = int(config['MINORI'].get('ScanInterval', 3600))
-        self.download_exec = str(config['MINORI'].get('DownloadExec', None))
-        self.download_pre = str(config['MINORI'].get('DownloadPre', None))
-        self.download_post = str(config['MINORI'].get('DownloadPost', None))
+        self.config = config['MINORI']
+        self.scan_interval = self.config.getint('ScanInterval', 3600)
+        self.download_pre = self.config.get('DownloadPre', None)
+        self.download_post = self.config.get('DownloadPost', None)
+        self.scan_pre = self.config.get('ScanPre', None)
+        self.scan_post = self.config.get('ScanPost', None)
 
     def __del__(self):
         self.connection.commit()
@@ -57,9 +59,6 @@ class MinoriMain:
         if self.download_pre:
             self.logger.info("Kicking off DownloadPre...")
             self._exec(self._replace_text(self.download_pre, replace_text))
-        if self.download_exec:
-            self.logger.info("Kicking off DownloadExec...")
-            self._exec(self._replace_text(self.download_exec, replace_text))
         if self.download_post:
             self._exec(self._replace_text(self.download_post, replace_text))
             self.logger.info("Kicking off DownloadPost...")
@@ -89,7 +88,17 @@ class MinoriMain:
 
             find = self._feed_rss(rss, keywords, show['current'] + 1)
             if find is not None:
+
+                if self.scan_pre:
+                    self.logger.debug("Kicking off ScanPre")
+                    self._exec(self.scan_pre)
                 find['user_title'] = show['name']
+                replace_text = {"$LINK": find['link'],
+                                "$TITLE": find['show_title']
+                                }
+                if self.scan_post:
+                    self.logger.debug("Kicking off ScanPost")
+                    self._exec(self._replace_text(self.scan_post, replace_text))
                 compiled.append(find)
 
         self.logger.debug("Compiled a filtered list of length {}".format(len(compiled)))
