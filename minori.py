@@ -23,7 +23,7 @@ logger.addHandler(ch)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--initdb', help='Initialize database <name>')
+    parser.add_argument('--initdb', help='Initialize database', action='store_true')
     parser.add_argument('--shows', help='Get all shows in the database', action='store_true')
     parser.add_argument('--rss', help='Get all rss feed in the database', action='store_true')
     parser.add_argument('--scan', help='Scan and check feeds for shows', action='store_true')

@@ -8,34 +8,29 @@ import subprocess
 import configparser
 from .minorirss import MinoriRss
 from .minorishows import MinoriShows
+from .minoridb import MinoriDatabase
 
 
 class MinoriMain:
-    def __init__(self, db='database.db'):
-        self.db = db
-        self.connection = sqlite3.connect(self.db)
-        self.logger = logging.getLogger('Minori')
+    def __init__(self):
         config = configparser.ConfigParser()
         config.read('minori.conf')
+        self.logger = logging.getLogger('Minori')
         self.scan_interval = int(config['MINORI']['ScanInterval'])
         self.download_exec = str(config['MINORI']['DownloadExec'])
         self.download_pre = str(config['MINORI']['DownloadPre'])
         self.download_post = str(config['MINORI']['DownloadPost'])
 
-    def __del__(self):
-        self.connection.commit()
-        self.connection.close()
-
     def initialize(self):
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS shows
-             (name text primary key, max_episodes integer, most_recent_episode integer,\
-                     keywords text, date_added timestamp)''')
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS rss
-             (name text primary key, url text, date_added timestamp)''')
-
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS downloads
-             (name text primary key, torrent text, date_added timestamp)''')
-        self.logger.info("Initialized database")
+        with MinoriDatabase() as md:
+            md.execute('''CREATE TABLE IF NOT EXISTS shows
+                (name text primary key, max_episodes integer, most_recent_episode integer,\
+                keywords text, date_added timestamp)''')
+            md.execute('''CREATE TABLE IF NOT EXISTS rss
+                (name text primary key, url text, date_added timestamp)''')
+            md.execute('''CREATE TABLE IF NOT EXISTS downloads
+                (name text primary key, torrent text, date_added timestamp)''')
+        self.logger.info("Initialized database {}".format(self.db_file))
 
     def _exec(self, command):
         subprocess.check_output(
@@ -51,10 +46,10 @@ class MinoriMain:
         return text
 
     def _download_shows(self, info):
+        # TODO: document this dictionary of variables
         replace_text = {"$LINK": info['link'],
                         "$TITLE": info['show_title']
                         }
-        # deluge only
         self.logger.info("Kicking off DownloadPre...")
         self._exec(self._replace_text(self.download_pre, replace_text))
         self.logger.info("Kicking off DownloadExec...")
@@ -100,11 +95,12 @@ class MinoriMain:
             insert_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
             update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name=?'
             try:
-                self._download_shows(i)
-                self.connection.execute(update_statement, (i['current'], i['user_title']))
-                self.connection.execute(insert_statement, (i['user_title'], i['link'], date))
                 # TODO: move download stuff into its own module? support other stuff?
                 self.logger.info("Added {} to downloads".format(i['show_title']))
+                with MinoriDatabase() as md:
+                    md.execute(update_statement, (i['current'], i['user_title']))
+                    md.execute(insert_statement, (i['user_title'], i['link'], date))
+                self._download_shows(i)
             except sqlite3.IntegrityError as e:
                 self.logger.debug("{} already in downloads database, skipping."
                                   .format(i['show_title']))

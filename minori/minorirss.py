@@ -3,22 +3,18 @@ import logging
 import datetime
 import sqlite3
 import feedparser
+from .minoridb import MinoriDatabase
 
 
 class MinoriRss:
-    def __init__(self, db='database.db'):
-        self.db = db
-        self.connection = sqlite3.connect(self.db)
+    def __init__(self):
         self.logger = logging.getLogger('Minori')
-
-    def __del__(self):
-        self.connection.commit()
-        self.connection.close()
 
     def add_rss(self, name, url):
         date = datetime.datetime.now()
         sql_statement = 'INSERT INTO rss VALUES (?, ?, ?)'
         try:
+            with MinoriDatabase()
             self.connection.execute(sql_statement, (name, url, date))
         except sqlite3.IntegrityError:
             self.logger.warning("RSS already exists in database")
