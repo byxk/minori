@@ -29,7 +29,7 @@ A continuous version of --download
 `./minori.py --minorin`
 
 ### todo
-* add pre/post scan hooks
+* add a minorin hook
 * sort out the mess that is the database handling...
 * sort out the tangle and mess of classes at the same time
 * add support for .torrent files (only tested magnet links)

@@ -19,10 +19,7 @@ class MinoriMain:
         config.read('minori.conf')
         self.config = config['MINORI']
         self.scan_interval = self.config.getint('ScanInterval', 3600)
-        self.download_pre = self.config.get('DownloadPre', None)
-        self.download_post = self.config.get('DownloadPost', None)
-        self.scan_pre = self.config.get('ScanPre', None)
-        self.scan_post = self.config.get('ScanPost', None)
+        self.download_hook = self.config.get('DownloadHook', None)
 
     def __del__(self):
         self.connection.commit()
@@ -56,12 +53,9 @@ class MinoriMain:
         replace_text = {"$LINK": info['link'],
                         "$TITLE": info['show_title']
                         }
-        if self.download_pre:
-            self.logger.info("Kicking off DownloadPre...")
-            self._exec(self._replace_text(self.download_pre, replace_text))
-        if self.download_post:
-            self._exec(self._replace_text(self.download_post, replace_text))
-            self.logger.info("Kicking off DownloadPost...")
+        if self.download_hook:
+            self._exec(self._replace_text(self.download_hook, replace_text))
+            self.logger.info("Kicking off DownloadHook...")
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
@@ -88,17 +82,7 @@ class MinoriMain:
 
             find = self._feed_rss(rss, keywords, show['current'] + 1)
             if find is not None:
-
-                if self.scan_pre:
-                    self.logger.debug("Kicking off ScanPre")
-                    self._exec(self.scan_pre)
                 find['user_title'] = show['name']
-                replace_text = {"$LINK": find['link'],
-                                "$TITLE": find['show_title']
-                                }
-                if self.scan_post:
-                    self.logger.debug("Kicking off ScanPost")
-                    self._exec(self._replace_text(self.scan_post, replace_text))
                 compiled.append(find)
 
         self.logger.debug("Compiled a filtered list of length {}".format(len(compiled)))
@@ -126,5 +110,5 @@ class MinoriMain:
         self.logger.debug("Starting watch...")
         while True:
             self.download()
-            self.logger.debug("Done download, sleeping...")
+            self.logger.debug("Done download, sleeping for {}".format(self.scan_interval))
             time.sleep(self.scan_interval)
