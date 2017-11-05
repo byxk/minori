@@ -93,8 +93,6 @@ class MinoriMain:
             except sqlite3.IntegrityError as e:
                 self.logger.debug("{} already in downloads database, skipping."
                                   .format(i['show_title']))
-            finally:
-                self.connection.commit()
 
     def minorin(self):
         self.logger.debug("Starting watch...")
