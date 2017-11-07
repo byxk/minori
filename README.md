@@ -30,8 +30,7 @@ A continuous version of --download
 
 ### todo
 * add a minorin hook
-* sort out the mess that is the database handling...
-* sort out the tangle and mess of classes at the same time
+* sort out the tangle and mess of classes
 * add support for .torrent files (only tested magnet links)
 * do something with a downloads folder?
 * add mal support?

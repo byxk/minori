@@ -8,33 +8,17 @@ import subprocess
 import configparser
 from .minorirss import MinoriRss
 from .minorishows import MinoriShows
+from .minoridb import MinoriDatabase
 
 
 class MinoriMain:
-    def __init__(self, db='database.db'):
-        self.db = db
-        self.connection = sqlite3.connect(self.db)
+    def __init__(self):
         self.logger = logging.getLogger('Minori')
         config = configparser.ConfigParser()
         config.read('minori.conf')
         self.config = config['MINORI']
         self.scan_interval = self.config.getint('ScanInterval', 3600)
         self.download_hook = self.config.get('DownloadHook', None)
-
-    def __del__(self):
-        self.connection.commit()
-        self.connection.close()
-
-    def initialize(self):
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS shows
-             (name text primary key, max_episodes integer, most_recent_episode integer,\
-                     keywords text, date_added timestamp)''')
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS rss
-             (name text primary key, url text, date_added timestamp)''')
-
-        self.connection.execute('''CREATE TABLE IF NOT EXISTS downloads
-             (name text primary key, torrent text, date_added timestamp)''')
-        self.logger.info("Initialized database")
 
     def _exec(self, command):
         subprocess.check_output(
@@ -50,6 +34,7 @@ class MinoriMain:
         return text
 
     def _download_shows(self, info):
+        # TODO: document this dictionary of variables
         replace_text = {"$LINK": info['link'],
                         "$TITLE": info['show_title']
                         }
@@ -95,13 +80,12 @@ class MinoriMain:
             insert_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
             update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name=?'
             try:
-                self.connection.execute(insert_statement, (i['user_title'], i['link'], date))
-                self.connection.execute(update_statement, (i['current'], i['user_title']))
-                self.connection.commit()
-                # if the show hasn't been added to the dl queue, then stuff below will execute
                 # TODO: move download stuff into its own module? support other stuff?
-                self._download_shows(i)
                 self.logger.info("Added {} to downloads".format(i['show_title']))
+                with MinoriDatabase() as md:
+                    md.execute(update_statement, (i['current'], i['user_title']))
+                    md.execute(insert_statement, (i['user_title'], i['link'], date))
+                self._download_shows(i)
             except sqlite3.IntegrityError as e:
                 self.logger.debug("{} already in downloads database, skipping."
                                   .format(i['show_title']))
