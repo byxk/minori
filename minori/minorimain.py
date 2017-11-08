@@ -13,13 +13,12 @@ from .minoridb import MinoriDatabase
 
 class MinoriMain:
     def __init__(self):
+        self.logger = logging.getLogger('Minori')
         config = configparser.ConfigParser()
         config.read('minori.conf')
-        self.logger = logging.getLogger('Minori')
-        self.scan_interval = int(config['MINORI']['ScanInterval'])
-        self.download_exec = str(config['MINORI']['DownloadExec'])
-        self.download_pre = str(config['MINORI']['DownloadPre'])
-        self.download_post = str(config['MINORI']['DownloadPost'])
+        self.config = config['MINORI']
+        self.scan_interval = self.config.getint('ScanInterval', 3600)
+        self.download_hook = self.config.get('DownloadHook', None)
 
     def _exec(self, command):
         subprocess.check_output(
@@ -39,12 +38,9 @@ class MinoriMain:
         replace_text = {"$LINK": info['link'],
                         "$TITLE": info['show_title']
                         }
-        self.logger.info("Kicking off DownloadPre...")
-        self._exec(self._replace_text(self.download_pre, replace_text))
-        self.logger.info("Kicking off DownloadExec...")
-        self._exec(self._replace_text(self.download_exec, replace_text))
-        self.logger.info("Kicking off DownloadPost...")
-        self._exec(self._replace_text(self.download_post, replace_text))
+        if self.download_hook:
+            self._exec(self._replace_text(self.download_hook, replace_text))
+            self.logger.info("Kicking off DownloadHook...")
 
     def _feed_rss(self, rss, keywords, current):
         for feed in rss:
@@ -98,5 +94,5 @@ class MinoriMain:
         self.logger.debug("Starting watch...")
         while True:
             self.download()
-            self.logger.debug("Done download, sleeping...")
+            self.logger.debug("Done download, sleeping for {}".format(self.scan_interval))
             time.sleep(self.scan_interval)
