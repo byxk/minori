@@ -2,4 +2,4 @@
 *.db
 *.log
 *__pycache__*
-*.conf
+minori.conf
