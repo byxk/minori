@@ -41,6 +41,4 @@ class MinoriDatabase:
                 keywords text, date_added timestamp)''')
             self.execute('''CREATE TABLE IF NOT EXISTS rss
                 (name text primary key, url text, date_added timestamp)''')
-            self.execute('''CREATE TABLE IF NOT EXISTS downloads
-                (name text primary key, torrent text, date_added timestamp)''')
             self.logger.info("Initialized database {}".format(self.db_file))

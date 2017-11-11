@@ -76,19 +76,11 @@ class MinoriMain:
     def download(self):
         to_download = self.scan_rss()
         for i in to_download:
-            date = datetime.datetime.now()
-            insert_statement = 'INSERT INTO downloads VALUES (?, ?, ?)'
             update_statement = 'UPDATE shows SET most_recent_episode=? WHERE name=?'
-            try:
-                # TODO: move download stuff into its own module? support other stuff?
-                self.logger.info("Added {} to downloads".format(i['show_title']))
-                with MinoriDatabase() as md:
-                    md.execute(update_statement, (i['current'], i['user_title']))
-                    md.execute(insert_statement, (i['user_title'], i['link'], date))
-                self._download_shows(i)
-            except sqlite3.IntegrityError as e:
-                self.logger.debug("{} already in downloads database, skipping."
-                                  .format(i['show_title']))
+            self.logger.info("Added {} to downloads".format(i['show_title']))
+            with MinoriDatabase() as md:
+                md.execute(update_statement, (i['current'], i['user_title']))
+            self._download_shows(i)
 
     def minorin(self):
         self.logger.debug("Starting watch...")
