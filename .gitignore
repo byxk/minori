@@ -2,4 +2,5 @@
 *.db
 *.log
 *__pycache__*
+*.egg-info
 minori.conf
