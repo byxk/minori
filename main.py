@@ -48,6 +48,14 @@ def add_show(ctx, name, title_format, feed, max_eps, current_ep):
 
 
 @cli.command()
+@click.argument('name')
+@click.pass_context
+def rm_show(ctx, name):
+    with MinoriDatabase(ctx.obj['db']) as m:
+        m.rm_show(name)
+
+
+@cli.command()
 @click.pass_context
 def list_feeds(ctx):
     with MinoriDatabase(ctx.obj['db']) as m:
@@ -81,3 +89,10 @@ def list_dl_commands(ctx):
 def add_dl_command(ctx, name, dl_command):
     with MinoriDatabase(ctx.obj['db']) as m:
         m.add_dl_command(name, dl_command)
+
+
+@cli.command()
+@click.pass_context
+def check_for_shows(ctx):
+    with MinoriDatabase(ctx.obj['db']) as m:
+        m.check_for_shows()
