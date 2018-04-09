@@ -10,6 +10,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        minori=minori:cli
+        minori=main:cli
     ''',
 )
