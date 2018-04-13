@@ -3,6 +3,7 @@
 import logging
 import shelve
 import feedparser
+import subprocess
 
 # TODO: move these later
 IN_PROGRESS = 0
@@ -112,7 +113,7 @@ class MinoriDatabase:
 
     def add_show(self, name: str, title_format: str, feed: str, max_eps: int, current_ep: int):
         if feed not in self.db['feeds'].keys():
-            logger.error("Feed {} not found, please add it first".format(feed))
+            logger.warning("Warning, no feed provided, will not be checked for new episodes")
             return
 
         self.db['shows'][name] = {'title_format': title_format,
@@ -129,7 +130,7 @@ class MinoriDatabase:
             4. gather all links, and pass that over the downloader
         '''
         for show, info in self.db['shows'].items():
-            if info['status'] == IN_PROGRESS:
+            if info['status'] == IN_PROGRESS and info['feed'] is not None:
                 search_title = info['title_format'].replace("@@EP_VAR@@",
                                                             '{0:02d}'.format(int(info['current_ep']) +
                                                                              1))
@@ -141,5 +142,17 @@ class MinoriDatabase:
                 for entry in feed['entries']:
                     if entry['title'] == search_title:
                         logger.info('Found entry for {}'.format(show))
-                        # kick off command
-                        # increment and save
+                        dl_info = self.db['dl_commands'][feed_info['dl_command']]
+                        logger.info('Download command: {}'.format(dl_info))
+                        # TODO: run this through a string replacer?
+                        stdout = subprocess.check_output(
+                            [dl_info.replace("@@LINK_VAR@@", entry['link']).replace("@@EP_NAME@@", entry['title'])],
+                            shell=True)
+                        logger.info(stdout)
+
+                        # increment
+                        self.db['shows'][show]['current_ep'] += 1
+                        if self.db['shows'][show]['current_ep'] == self.db['shows'][show]['max_eps']:
+                            self.db['shows'][show]['status'] = FINISHED
+
+                        logger.info("Finished all actions for {}".format(show))

@@ -56,7 +56,7 @@ def list_shows(ctx):
 @manage_shows.command()
 @click.argument('name')
 @click.argument('title_format')
-@click.argument('feed')
+@click.option('--feed',  default=None, help='rss feed to monitor')
 @click.option('--max-eps',  default=-1, help='max # of eps if known, default is -1')
 @click.option('--current-ep', default=0, help='episode currently on, e.g default 0 (not started)')
 @click.pass_context
