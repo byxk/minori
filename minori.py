@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-import os
-import importlib
-import inspect
 import logging
 import shelve
 import feedparser
-import subprocess
 
 # TODO: move these later
 IN_PROGRESS = 0
@@ -26,7 +22,6 @@ class MinoriDatabase:
             self.db['version'] = 1
             self.db['shows'] = {}
             self.db['feeds'] = {}
-            self.db['dl_commands'] = {}
 
         self.actions = actions
         self.vars = {'ep_no': '@@EP_VAR@@',
@@ -39,7 +34,7 @@ class MinoriDatabase:
     def __exit__(self, exc_type, exc_value, traceback):
         self.db.sync()
         self.db.close()
-    
+
     def mvars(self, string: str, show_ctx: dict) -> str:
         """ takes a string and performs a bunch of .replace()
             gotta be a better way to do this... """
@@ -49,29 +44,18 @@ class MinoriDatabase:
             new_string = new_string.replace(mvar, show_ctx[key])
         return new_string
 
-    def get_dl_commands(self) -> dict:
-        return self.db.get('dl_commands', {})
-
-    def add_dl_command(self, name: str, dl_command: str) -> dict:
-        self.db['dl_commands'][name] = dl_command
-        logger.info("Added command {}".format(name))
-
     def get_shows(self) -> dict:
         return self.db.get('shows')
 
     def get_feeds(self) -> dict:
         return self.db.get('feeds')
 
-    def add_feed(self, title: str, url: str, dl_command: str, path: str):
+    def add_feed(self, title: str, url: str, path: str):
         # $ENTRY_NO should be a variable
-        if dl_command not in self.db['dl_commands'].keys():
-            logger.error("dl_command {} not found, please add it first".format(dl_command))
-            return
         try:
             feed_path = path.split(',')
             feed = feedparser.parse(url)
             self.db['feeds'][title] = {'url': url,
-                                       'dl_command': dl_command,
                                        'feed_path': feed_path}
             # try to see if there's a path to a link
             if path != '':
@@ -103,14 +87,6 @@ class MinoriDatabase:
             return
 
         logger.info("Added feed {}".format(title))
-
-    def rm_dl_command(self, name: str):
-        try:
-            del self.db['dl_commands'][name]
-            logger.info('Command deleted')
-        except KeyError:
-            logger.error('Command not in database')
-            pass
 
     def rm_feed(self, name: str):
         try:
@@ -159,17 +135,23 @@ class MinoriDatabase:
                 for entry in feed['entries']:
                     if entry['title'] == search_title:
                         logger.info('Found entry for {}'.format(show))
-                        dl_info = self.db['dl_commands'][feed_info['dl_command']]
-                        logger.info('Download command: {}'.format(dl_info))
-                        # TODO: run this through a string replacer?
-                        stdout = subprocess.check_output(
-                            [dl_info.replace("@@LINK_VAR@@", entry['link']).replace("@@EP_NAME@@", entry['title'])],
-                            shell=True)
-                        logger.info(stdout)
 
-                        # increment
-                        self.db['shows'][show]['current_ep'] += 1
-                        if self.db['shows'][show]['current_ep'] == self.db['shows'][show]['max_eps']:
-                            self.db['shows'][show]['status'] = FINISHED
+                        # construct context
+                        context = {'show_name': show,
+                                   'feed_name': info['feed'],
+                                   'dl_link': entry['link'],
+                                   'show_no': info['current_ep'] + 1,
+                                   'feed_show_title': entry['title']}
+                        try:
+                            for action in self.actions:
+                                action.execute(self.db, context)
+                        except Exception as e:
+                            logger.error("Error kicking off action {}".format(str(action)))
+                            raise e
+                        finally:
+                            # increment
+                            self.db['shows'][show]['current_ep'] += 1
+                            if self.db['shows'][show]['current_ep'] == self.db['shows'][show]['max_eps']:
+                                self.db['shows'][show]['status'] = FINISHED
 
-                        logger.info("Finished all actions for {}".format(show))
+                            logger.info("Finished all actions for {}".format(show))
