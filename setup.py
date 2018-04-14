@@ -1,15 +1,15 @@
 from setuptools import setup
 
 setup(
-    name='minori',
+    name='Minori',
     version='0.1',
-    py_modules=['minori'],
+    packages=['Minori', 'Minori.actions'],
     install_requires=[
         'click',
         'feedparser',
     ],
     entry_points='''
         [console_scripts]
-        minori=main:cli
+        minori=Minori.main:cli
     ''',
 )

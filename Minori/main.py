@@ -108,10 +108,10 @@ def load_actions():
                      'actions')) if f.endswith('.py') and "__.py" not in f]
 
     # import parent module / namespace
-    importlib.import_module('actions')
+    importlib.import_module('Minori.actions')
     modules = []
     for action in actionfiles:
-        imp = importlib.import_module(action, package="actions")
+        imp = importlib.import_module(action, package="Minori.actions")
         if 'execute' in dir(imp):
             modules.append(imp)
             logger.debug("Loaded action: {}".format(action))
