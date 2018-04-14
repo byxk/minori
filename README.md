@@ -6,42 +6,54 @@
 
 ### requirements
 * [feedparser](https://pypi.python.org/pypi/feedparser)
+* [click](http://click.pocoo.org/5/)
 
-### examples
-Add a show:
+### install
 
-`./minori.py addshow "Onyankopon" 12 "[HorribleSubs],1080p,mkv"`
+`pip install .` 
 
-Add a rss feed:
+or
 
-`./minori.py addrss "HorribleSubs" "urlhere"`
+`python3 setup.py install`
+
+### workflow
+Add a feed first:
+
+`minori manage_feeds add_feed nyaa "https://nyaa.pantsu.cat/feed?"`
+
+Then add a show:
+
+`minori manage_shows add_show "Legend of the Galactic Heroes - Die Neue These" "[HorribleSubs] Legend of the Galactic Heroes - Die Neue These - @@EP_VAR@@ [1080p].mkv" --feed horriblesubs1080`
 
 Scan rss feeds for shows
 
-`./minori.py --scan`
+`minori check`
 
-Scan rss feeds for shows, and execute actions
+### actions
 
-`./minori.py --download`
+Minori will load 'actions', which are basically plugins installed in `actions/`.
+These actions can add their own functionality and subcommands, see `download.py`.
 
-A continuous version of --download
+TODO: Update with some dev api info
 
-`./minori.py --minorin`
+When a show has been found on a feed, Minori will execute all loaded actions,
+providing them with the internal db, and the Minori 'context' - a dictionary containing
+info about the show/link/feed.
 
 ### todo
-* add a minorin hook
-* sort out the tangle and mess of classes
-* add support for .torrent files (only tested magnet links)
-* do something with a downloads folder?
+* we want custom feed paths!
+* clear documentation/standards for the action api
+* documentation on the Minori context
+* mvar replacer documentation/standards
 * add mal support?
 * frontend?
 
 ### sample
-``` ./minori.py --download
-2017-10-11 20:37:00,324 [DEBUG] Parsed feed HorribleSubs RSS with 50 entries
-2017-10-11 20:37:00,324 [DEBUG] Parsed all entries, ended up with compiled length 50
-2017-10-11 20:37:00,324 [DEBUG] Compiled this list of keywords: ['[HorribleSubs]', '1080p', 'mkv', '01', 'Onyankopon']
-2017-10-11 20:37:00,325 [DEBUG] Compiled a filtered list of length 1
-2017-10-11 20:37:00,552 [INFO] Sent download to deluge: [HorribleSubs] Onyankopon - 01 [1080p].mkv
-2017-10-11 20:37:00,552 [INFO] Added [HorribleSubs] Onyankopon - 01 [1080p].mkv to downloads
+```
+ minori check
+[INFO] Looking for Legend of the Galactic Heroes - Die Neue These with title_format [HorribleSubs] Legend of the Galactic Heroes - Die Neue These - 03 [1080p].mkv
+[INFO] Looking for Darling in the FranXX with title_format [HorribleSubs] Darling in the FranXX - 13 [1080p].mkv
+[INFO] Looking for 3D Kanojo Real Girl with title_format [HorribleSubs] 3D Kanojo Real Girl - 03 [1080p].mkv
+[INFO] Looking for Steins Gate 0 with title_format [HorribleSubs] Steins Gate 0 - 02 [1080p].mkv
+[INFO] Looking for Wotaku ni Koi wa Muzukashii with title_format [HorribleSubs] Wotaku ni Koi wa Muzukashii - 02 [1080p].mkv
 ```
