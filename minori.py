@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import os
+import importlib
+import inspect
 import logging
 import shelve
 import feedparser
@@ -15,7 +18,7 @@ logger = logging.getLogger('Minori')
 
 class MinoriDatabase:
     # this is just a wrapper for a shelve file...
-    def __init__(self, db=None):
+    def __init__(self, db=None, actions=[]):
         self.db = shelve.open(db if db else 'db.shelve', 'c', writeback=True)
 
         if 'version' not in self.db.keys():
@@ -25,12 +28,26 @@ class MinoriDatabase:
             self.db['feeds'] = {}
             self.db['dl_commands'] = {}
 
+        self.actions = actions
+        self.vars = {'ep_no': '@@EP_VAR@@',
+                     'link': '@@LINK_VAR@@',
+                     'name': '@@SHOW_NAME@@'}
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.db.sync()
         self.db.close()
+    
+    def mvars(self, string: str, show_ctx: dict) -> str:
+        """ takes a string and performs a bunch of .replace()
+            gotta be a better way to do this... """
+        new_string = string
+        for key in show_ctx.keys():
+            mvar = self.vars[key]
+            new_string = new_string.replace(mvar, show_ctx[key])
+        return new_string
 
     def get_dl_commands(self) -> dict:
         return self.db.get('dl_commands', {})
@@ -131,9 +148,9 @@ class MinoriDatabase:
         '''
         for show, info in self.db['shows'].items():
             if info['status'] == IN_PROGRESS and info['feed'] is not None:
-                search_title = info['title_format'].replace("@@EP_VAR@@",
-                                                            '{0:02d}'.format(int(info['current_ep']) +
-                                                                             1))
+                search_title = self.mvars(info['title_format'],
+                                          {'ep_no': '{0:02d}'.format(int(info['current_ep']) +
+                                                                     1)})
                 logger.info('Looking for {} with title_format {}'.format(show,
                                                                          search_title))
                 feed_info = self.db['feeds'][info['feed']]
