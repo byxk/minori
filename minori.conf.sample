@@ -1,8 +1,0 @@
-[MINORI]
-Database=database.db
-ScanInterval=1800
-DownloadHook=deluge-console "add $LINK";touch "~/shows/$TITLE"
-
-[VERSION]
-Minori=1
-Database=1

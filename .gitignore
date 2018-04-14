@@ -2,4 +2,8 @@
 *.db
 *.log
 *__pycache__*
+*.egg-info
 minori.conf
+*.shelve
+build/
+dist/
