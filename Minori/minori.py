@@ -144,7 +144,8 @@ class MinoriDatabase:
                                    'feed_show_title': entry['title']}
                         try:
                             for action in self.actions:
-                                action.execute(self.db, context)
+                                if 'execute' in dir(action):
+                                    action.execute(self.db, context)
                         except Exception as e:
                             logger.error("Error kicking off action {}".format(str(action)))
                             raise e

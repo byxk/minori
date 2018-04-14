@@ -112,11 +112,9 @@ def load_actions():
     modules = []
     for action in actionfiles:
         imp = importlib.import_module(action, package="Minori.actions")
-        if 'execute' in dir(imp):
-            modules.append(imp)
-            logger.debug("Loaded action: {}".format(action))
-        else:
-            logger.warning("Malformed action found: {}".format(action))
+        modules.append(imp)
+        logger.debug("Loaded action: {}".format(action))
+        logger.warning("Malformed action found: {}".format(action))
     return modules
 
 
