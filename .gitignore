@@ -5,3 +5,5 @@
 *.egg-info
 minori.conf
 *.shelve
+build/
+dist/
