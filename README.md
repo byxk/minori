@@ -23,7 +23,7 @@ Add a feed first:
 
 Then add a show:
 
-`minori manage_shows add_show "Legend of the Galactic Heroes - Die Neue These" "[HorribleSubs] Legend of the Galactic Heroes - Die Neue These - @@EP_VAR@@ [1080p].mkv" --feed horriblesubs1080`
+```minori manage_shows add_show "Legend of the Galactic Heroes - Die Neue These" "[HorribleSubs] Legend of the Galactic Heroes - Die Neue These - @@EP_VAR@@ [1080p].mkv" --feed nyaa```
 
 Scan rss feeds for shows
 
